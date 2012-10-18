@@ -8,17 +8,17 @@ identity(UNDEFINED)
 	pos.y = BOARD_ROW_NUM + 1;
 };
 
-CheckerPiece::CheckerPiece(BOARDPOSITION p_identity, unsigned int p_x, unsigned int p_y):
-identity(p_identity)
+CheckerPiece::CheckerPiece(BOARDPOSITION pIdentity, Vector2 pPos):
+identity(pIdentity), pos(pPos)
 {
-	pos.x = p_x;
-	pos.y = p_y;
+
 }
 
-CheckerPiece::CheckerPiece(BOARDPOSITION p_identity, Vector2 p_pos):
-identity(p_identity), pos(p_pos)
+CheckerPiece::CheckerPiece(BOARDPOSITION pIdentity, unsigned int pX, unsigned int pY):
+identity(pIdentity)
 {
-
+	pos.x = pX;
+	pos.y = pY;
 }
 
 CheckerPiece::~CheckerPiece()

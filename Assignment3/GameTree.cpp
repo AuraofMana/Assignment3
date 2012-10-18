@@ -7,27 +7,93 @@ using std::cout;
 using std::endl;
 
 GameNode::GameNode():
-data(-1), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true)
+heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true)
 {
-	
+	for(int i = 0; i < BOARD_ROW_NUM; ++i)
+	{
+		for(int j = 0; j < BOARD_COL_NUM; ++j)
+		{
+			gameBoard[i][j] = UNDEFINED;
+		}
+	}
 }
 
-GameNode::GameNode(int pData):
-data(pData), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true)
+GameNode::GameNode(const GameNode& pGameNode):
+heuristics(pGameNode.heuristics), alpha(INT_MIN), beta(INT_MAX), isMaxNode(!(pGameNode.isMaxNode))
 {
+	for(int i = 0; i < BOARD_ROW_NUM; ++i)
+	{
+		for(int j = 0; j < BOARD_COL_NUM; ++j)
+		{
+			gameBoard[i][j] = pGameNode.gameBoard[i][j];
+		}
+	}
+}
 
+GameNode::GameNode(BOARDPOSITION pGameBoard[BOARD_ROW_NUM][BOARD_COL_NUM]):
+heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true)
+{
+	for(int i = 0; i < BOARD_ROW_NUM; ++i)
+	{
+		for(int j = 0; j < BOARD_COL_NUM; ++j)
+		{
+			gameBoard[i][j] = pGameBoard[i][j];
+			switch(gameBoard[i][j])
+			{
+			case A_PIECE:
+				++heuristics;
+				break;
+			case B_PIECE:
+				--heuristics;
+				break;
+			case A_KING:
+				heuristics += 2;
+				break;
+			case B_KING:
+				heuristics -= 2;
+				break;
+			}
+		}
+	}
 }
 
 GameNode::GameNode(bool pIsMaxNode):
-data(-1), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode)
+heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode)
 {
-
+	for(int i = 0; i < BOARD_ROW_NUM; ++i)
+	{
+		for(int j = 0; j < BOARD_COL_NUM; ++j)
+		{
+			gameBoard[i][j] = UNDEFINED;
+		}
+	}
 }
 
-GameNode::GameNode(int pData, bool pIsMaxNode):
-data(pData), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode)
+GameNode::GameNode(BOARDPOSITION pGameBoard[BOARD_ROW_NUM][BOARD_COL_NUM], bool pIsMaxNode):
+heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode)
 {
-
+	for(int i = 0; i < BOARD_ROW_NUM; ++i)
+	{
+		for(int j = 0; j < BOARD_COL_NUM; ++j)
+		{
+			gameBoard[i][j] = pGameBoard[i][j];
+			switch(gameBoard[i][j])
+			{
+			case A_PIECE:
+				++heuristics;
+				break;
+			case B_PIECE:
+				--heuristics;
+				break;
+			case A_KING:
+				heuristics += 2;
+				break;
+			case B_KING:
+				heuristics -= 2;
+				break;
+			}
+		}
+	}
 }
 
 GameNode::~GameNode()
@@ -45,6 +111,7 @@ void GameNode::deleteNode()
 		}
 		successors.clear();
 	}
+	delete this;
 }
 
 void GameNode::printAlphaBeta()
@@ -62,9 +129,16 @@ void GameNode::printAlphaBeta()
 	cout << ")" << endl;
 }
 
-void GameNode::printData()
+void GameNode::printGameBoard()
 {
-	cout << name << "(" << data << ")" << endl;
+	for(int i = 0; i < BOARD_ROW_NUM; ++i)
+	{
+		for(int j = 0; j < BOARD_COL_NUM; ++j)
+		{
+			cout << gameBoard[i][j];
+		}
+		cout << endl;
+	}
 }
 
 GameTree::GameTree():

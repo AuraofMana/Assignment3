@@ -37,8 +37,8 @@ public:
 
 	//METHODS
 	CheckerPiece();
-	CheckerPiece(BOARDPOSITION p_identity, Vector2 p_pos);
-	CheckerPiece(BOARDPOSITION p_identity, unsigned int p_x, unsigned int p_y);
+	CheckerPiece(BOARDPOSITION pIdentity, Vector2 pPos);
+	CheckerPiece(BOARDPOSITION pIdentity, unsigned int pX, unsigned int pY);
 	~CheckerPiece();
 };
 
