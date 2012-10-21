@@ -697,30 +697,21 @@ int gameMaxValue(GameNode *node, int alpha, int beta)
 
 	node->alpha = alpha;
 	node->beta = beta;
+	if(node->depth != 0)
+	{
+		cout << node->name << endl;
+	}
+	node->printDepth();
 	for(int i = 0; i < node->successors.size(); ++i)
 	{
-		if(heuristicPrinted)
-		{
-			for(int j = 0; j < node->depth - 1; ++j)
-			{
-				cout << "\t";
-			}
-			if(node->depth - 1 >= 0) cout << "Depth " << node->depth - 1 << ": ";
-		}
-		if(node->depth != 0)
-		{
-			cout << node->name << endl;
-		}
-		node->printDepth();
 		node->alpha = max(node->alpha, gameMinValue(node->successors[i], node->alpha, node->beta));
+		if(node->printDepth(-1)) cout << node->name << endl;
+		if(i + 1 < node->successors.size()) node->printDepth();
 		if(node->alpha >= node->beta)
 		{
-			for(int j = 0; j < node->depth; ++j)
-			{
-				cout << "\t";
-			}
-			cout << "Depth " << node->depth << ": " << "Pruning Player B's moves: ";
 			int nextIndex = i + 1;
+			if(node->successors.size() - nextIndex <= 0) node->printDepth();
+			cout << "Pruning Player A's moves: ";
 			if(node->successors.size() - nextIndex > 0)
 			{
 				node->successors[nextIndex]->printPruningInfo();
@@ -739,9 +730,9 @@ int gameMaxValue(GameNode *node, int alpha, int beta)
 			}
 			else
 			{
-				cout << "<No moves> ";
+				cout << "<no children> ";
 			}
-			cout << "Alpha = " << node->alpha << "; Beta = " << node->beta << "." << endl;
+			cout << "Alpha = " << node->alpha << "; Beta = " << node->beta << ".\n" << endl;
 			heuristicPrinted = false;
 			return node->beta;
 		}
@@ -761,30 +752,21 @@ int gameMinValue(GameNode *node, int alpha, int beta)
 
 	node->alpha = alpha;
 	node->beta = beta;
+	if(node->depth != 0)
+	{
+		cout << node->name << endl;
+	}
+	node->printDepth();
 	for(int i = 0; i < node->successors.size(); ++i)
 	{
-		if(heuristicPrinted)
-		{
-			for(int j = 0; j < node->depth - 1; ++j)
-			{
-				cout << "\t";
-			}
-			if(node->depth - 1 >= 0) cout << "Depth " << node->depth - 1 << ": ";
-		}
-		if(node->depth != 0)
-		{
-			cout << node->name << endl;
-		}
-		node->printDepth();
 		node->beta = min(node->beta, gameMaxValue(node->successors[i], node->alpha, node->beta));
+		if(node->printDepth(-1)) cout << node->name << endl;
+		if(i + 1 < node->successors.size()) node->printDepth();
 		if(node->beta <= node->alpha)
 		{
-			for(int j = 0; j < node->depth; ++j)
-			{
-				cout << "\t";
-			}
-			cout << "Depth " << node->depth << ": " << "Pruning Player A's moves: ";
 			int nextIndex = i + 1;
+			if(node->successors.size() - nextIndex <= 0) node->printDepth();
+			cout << "Pruning Player B's moves: ";
 			if(node->successors.size() - nextIndex > 0)
 			{
 				node->successors[nextIndex]->printPruningInfo();
@@ -803,9 +785,9 @@ int gameMinValue(GameNode *node, int alpha, int beta)
 			}
 			else
 			{
-				cout << "<No moves> ";
+				cout << "<no children> ";
 			}
-			cout << "Alpha = " << node->alpha << "; Beta = " << node->beta << "." << endl;
+			cout << "Alpha = " << node->alpha << "; Beta = " << node->beta << ".\n" << endl;
 			heuristicPrinted = false;
 			return node->alpha;
 		}
@@ -1033,6 +1015,20 @@ int main(int argc, char **argv)
 	//Run Minimax with alphabeta pruning
 	gameMaxValue(startBoard, INT_MIN, INT_MAX);
 	/////////////////////////////////////////////////////////////////////////////////////////
+
+	cout << "\nExpansions Complete.\n" << endl;
+	//Loop through startBoard's successors until startBoard's alpha == successor's beta
+	GameNode *chosenSuccessor;
+	for(int i = 0; i < startBoard->successors.size(); ++i)
+	{
+		if(startBoard->alpha == startBoard->successors[i]->beta)
+		{
+			chosenSuccessor = startBoard->successors[i];
+			break;
+		}
+	}
+	
+	cout << "\nAnswer: " << chosenSuccessor->name << endl;
 
 	getchar();
 	return 0;

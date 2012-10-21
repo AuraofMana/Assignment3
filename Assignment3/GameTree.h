@@ -46,7 +46,7 @@ public:
 	void deleteNode();
 	void setName();
 	void printAlphaBeta() const;
-	void printDepth() const;
+	bool printDepth(int pDepth = 0) const;
 	void printPruningInfo() const;
 	void printGameBoard() const;
 };

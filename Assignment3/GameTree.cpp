@@ -146,13 +146,16 @@ void GameNode::printAlphaBeta() const
 	cout << ")" << endl;
 }
 
-void GameNode::printDepth() const
+bool GameNode::printDepth(int pDepth) const
 {
-	for(int i = 0; i < depth; ++i)
+	int tDepth = depth + pDepth;
+	if(tDepth < 0) return false;
+	for(int i = 0; i < tDepth; ++i)
 	{
 		cout << "\t";
 	}
-	cout << "Depth " << depth << ": ";
+	cout << "Depth " << tDepth << ": ";
+	return true;
 }
 
 void GameNode::printPruningInfo() const
