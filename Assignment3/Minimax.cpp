@@ -5,9 +5,9 @@
 #include <vector>
 #include <climits>
 #include <algorithm>
+#include <deque>
 
 //PROJECT HEADERS
-#include "CheckerPiece.h"
 #include "GameTree.h"
 
 using std::cout;
@@ -17,14 +17,15 @@ using std::string;
 using std::vector;
 using std::max;
 using std::min;
+using std::deque;
 
 //GLOBAL VARIABLES
+const bool bDebug = false;
+bool heuristicPrinted = false;
+
 int searchDepth;
 
-BOARDPOSITION gameBoard[BOARD_ROW_NUM][BOARD_COL_NUM]; //Defines the checkerboard
-
-vector<CheckerPiece> APieces; //Pieces owned by A
-vector<CheckerPiece> BPieces; //Pieces owned by B
+GameNode *startBoard = new GameNode();
 
 //Nature of the position on the checkerboard
 enum POSITIONSTATE
@@ -40,65 +41,17 @@ enum POSITIONSTATE
 	MIDDLE //Not really a special position after all
 };
 
-class GameMove
-{
-public:
-	Vector2 from;
-	Vector2 to;
-	bool AMoved;
-	bool isJump;
-	bool killedKing; //If isJump is true denotes whether or not a king was killed
-	bool upgrade; //If the move caused an upgrade to king
-	int hValue; //Heuristic value
-
-	GameMove():isJump(false)
-	{
-		from.x = to.x = BOARD_COL_NUM;
-		from.y = to.y = BOARD_ROW_NUM;
-		AMoved = true;
-		killedKing = false;
-		upgrade = false;
-		hValue = 0;
-	}
-
-	GameMove(int p_X, int p_Y, bool p_AMoved, bool p_isJump):
-	AMoved(p_AMoved), isJump(p_isJump)
-	{
-		from.x = p_X;
-		from.y = p_Y;
-		to.x = BOARD_COL_NUM;
-		to.y = BOARD_ROW_NUM;
-		killedKing = false;
-		upgrade = false;
-		hValue = 0;
-	}
-
-	GameMove(int p_X, int p_Y, int t_X, int t_Y, bool p_AMoved, bool p_isJump):
-	AMoved(p_AMoved), isJump(p_isJump)
-	{
-		from.x = p_X;
-		from.y = p_Y;
-		to.x = t_X;
-		to.y = t_Y;
-		killedKing = false;
-		upgrade = false;
-		hValue = 0;
-	};
-
-	~GameMove(){};
-};
-
 //FUNCTION DECLARATION
 bool InputBoard(char* fileName);
 bool getForwardMoves(GameNode *gNode, int x, int y);
 bool getForwardJumps(GameNode *gNode, int x, int y);
 bool getBackwardMoves(GameNode *gNode, int x, int y);
 bool getBackwardJumps(GameNode *gNode, int x, int y);
+bool getAllJumps(GameNode *gNode, int x, int y);
+bool getAllMoves(GameNode *gNode, int x, int y);
 POSITIONSTATE checkPosition(int x, int y);
-bool checkKingship(int x, int y, BOARDPOSITION bPosition);
-void kingship();
-int currentHeuristics();
-void updateHeuristics(vector<GameMove>& moves);
+bool checkKingship(int x, int y, const BOARDPOSITION bPosition);
+bool anyPiecesLeft(GameNode *gNode);
 
 int gameMaxValue(GameNode *node, int alpha, int beta);
 int gameMinValue(GameNode *node, int alpha, int beta);
@@ -121,26 +74,22 @@ bool InputBoard(char* fileName)
 				switch(currentLine[i])
 				{
 				case 'X':
-					gameBoard[currentRow][i] = LIGHT_SQUARE;
+					startBoard->gameBoard[i][currentRow] = LIGHT_SQUARE;
 					break;
 				case '.':
-					gameBoard[currentRow][i] = EMPTY_DARK_SQUARE;
+					startBoard->gameBoard[i][currentRow] = EMPTY_DARK_SQUARE;
 					break;
 				case 'o':
-					gameBoard[currentRow][i] = A_PIECE;
-					APieces.push_back(CheckerPiece(A_PIECE, currentRow, i));
+					startBoard->gameBoard[i][currentRow] = A_PIECE;
 					break;
 				case '*':
-					gameBoard[currentRow][i] = B_PIECE;
-					APieces.push_back(CheckerPiece(B_PIECE, currentRow, i));
+					startBoard->gameBoard[i][currentRow] = B_PIECE;
 					break;
 				case 'k':
-					gameBoard[currentRow][i] = A_KING;
-					APieces.push_back(CheckerPiece(A_KING, currentRow, i));
+					startBoard->gameBoard[i][currentRow] = A_KING;
 					break;
 				case 'K':
-					gameBoard[currentRow][i] = B_KING;
-					APieces.push_back(CheckerPiece(B_KING, currentRow, i));
+					startBoard->gameBoard[i][currentRow] = B_KING;
 					break;
 				default: //Unrecognized character, must be an error
 					cout << "Unrecognized character \'" << currentLine[i] << "\'. Exiting program..." << endl;
@@ -155,6 +104,8 @@ bool InputBoard(char* fileName)
 			++currentRow; //Advance to the next row on the board
 		}
 		boardFile.close();
+		startBoard->name = "Start";
+		startBoard->depth = 0;
 		return true;
 	}
 	else
@@ -169,7 +120,7 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 	bool retBool = false;
 	POSITIONSTATE pState = checkPosition(x, y);
 	BOARDPOSITION currBoardPosition = gNode->gameBoard[x][y];
-	if(currBoardPosition == A_PIECE || currBoardPosition == A_KING)
+	if(gNode->isMaxNode && (currBoardPosition == A_PIECE || currBoardPosition == A_KING))
 	{
 		if(pState == MIDDLE || pState == BOTTOM_ROW || pState == BOTTOM_LEFT || pState == LEFT_COLUMN)
 		{
@@ -177,7 +128,7 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 			int newY = y - 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(gNode);
+				GameNode *newGameNode = new GameNode(*gNode);
 				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 				if(checkKingship(newX, newY, currBoardPosition))
 				{
@@ -189,6 +140,11 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 					if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
 					else newGameNode->gameBoard[newX][newY] = A_KING;
 				}
+				newGameNode->fromX = x;
+				newGameNode->fromY = y;
+				newGameNode->toX = newX;
+				newGameNode->toY = newY;
+				newGameNode->setName();
 				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
@@ -200,7 +156,7 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 			int newY = y - 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(gNode);
+				GameNode *newGameNode = new GameNode(*gNode);
 				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 				if(checkKingship(newX, newY, currBoardPosition))
 				{
@@ -212,13 +168,18 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 					if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
 					else newGameNode->gameBoard[newX][newY] = A_KING;
 				}
+				newGameNode->fromX = x;
+				newGameNode->fromY = y;
+				newGameNode->toX = newX;
+				newGameNode->toY = newY;
+				newGameNode->setName();
 				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
 			}
 		}
 	}
-	else if(currBoardPosition == B_PIECE || currBoardPosition == B_KING)
+	else if(!(gNode->isMaxNode) && (currBoardPosition == B_PIECE || currBoardPosition == B_KING))
 	{
 		if(pState == MIDDLE || pState == TOP_ROW || pState == TOP_LEFT || pState == LEFT_COLUMN)
 		{
@@ -226,7 +187,7 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 			int newY = y + 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(gNode);
+				GameNode *newGameNode = new GameNode(*gNode);
 				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 				if(checkKingship(newX, newY, currBoardPosition))
 				{
@@ -238,6 +199,11 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 					if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
 					else newGameNode->gameBoard[newX][newY] = B_KING;
 				}
+				newGameNode->fromX = x;
+				newGameNode->fromY = y;
+				newGameNode->toX = newX;
+				newGameNode->toY = newY;
+				newGameNode->setName();
 				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
@@ -249,7 +215,7 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 			int newY = y + 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(gNode);
+				GameNode *newGameNode = new GameNode(*gNode);
 				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 				if(checkKingship(newX, newY, currBoardPosition))
 				{
@@ -261,6 +227,11 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 					if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
 					else newGameNode->gameBoard[newX][newY] = B_KING;
 				}
+				newGameNode->fromX = x;
+				newGameNode->fromY = y;
+				newGameNode->toX = newX;
+				newGameNode->toY = newY;
+				newGameNode->setName();
 				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
@@ -277,7 +248,7 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 	POSITIONSTATE pState = checkPosition(x, y);
 	BOARDPOSITION currBoardPosition = gNode->gameBoard[x][y];
 	bool killedKing = false;
-	if(currBoardPosition == A_PIECE || currBoardPosition == A_KING)
+	if(gNode->isMaxNode && (currBoardPosition == A_PIECE || currBoardPosition == A_KING))
 	{
 		if(pState == MIDDLE || pState == BOTTOM_ROW || pState == BOTTOM_LEFT || pState == LEFT_COLUMN)
 		{
@@ -289,7 +260,7 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 				newY -= 1;
 				if(newX < BOARD_COL_NUM && newY >= 0 && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(gNode);
+					GameNode *newGameNode = new GameNode(*gNode);
 					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[x + 1][y - 1] = EMPTY_DARK_SQUARE;
 					if(checkKingship(newX, newY, currBoardPosition))
@@ -304,6 +275,11 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 					}
 					if(killedKing) newGameNode->heuristics += 2;
 					else ++(newGameNode->heuristics);
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
 					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
@@ -320,7 +296,7 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 				newY -= 1;
 				if(newX >= 0 && newY >= 0 && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(gNode);
+					GameNode *newGameNode = new GameNode(*gNode);
 					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[x - 1][y - 1] = EMPTY_DARK_SQUARE;
 					if(checkKingship(newX, newY, currBoardPosition))
@@ -335,6 +311,11 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 					}
 					if(killedKing) newGameNode->heuristics += 2;
 					else ++(newGameNode->heuristics);
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
 					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
@@ -342,7 +323,7 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 			}
 		}
 	}
-	else if(currBoardPosition == B_PIECE || currBoardPosition == B_KING)
+	else if(!(gNode->isMaxNode) && (currBoardPosition == B_PIECE || currBoardPosition == B_KING))
 	{
 		if(pState == MIDDLE || pState == TOP_ROW || pState == TOP_LEFT || pState == LEFT_COLUMN)
 		{
@@ -354,7 +335,7 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 				newY += 1;
 				if(newX < BOARD_COL_NUM && newY < BOARD_ROW_NUM && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(gNode);
+					GameNode *newGameNode = new GameNode(*gNode);
 					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[x + 1][y + 1] = EMPTY_DARK_SQUARE;
 					if(checkKingship(newX, newY, currBoardPosition))
@@ -369,6 +350,11 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 					}
 					if(killedKing) newGameNode->heuristics -= 2;
 					else --(newGameNode->heuristics);
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
 					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
@@ -385,7 +371,7 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 				newY += 1;
 				if(newX >= 0 && newY < BOARD_ROW_NUM && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(gNode);
+					GameNode *newGameNode = new GameNode(*gNode);
 					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[x - 1][y + 1] = EMPTY_DARK_SQUARE;
 					if(checkKingship(newX, newY, currBoardPosition))
@@ -400,6 +386,11 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 					}
 					if(killedKing) newGameNode->heuristics -= 2;
 					else --(newGameNode->heuristics);
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
 					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
@@ -416,7 +407,7 @@ bool getBackwardMoves(GameNode *gNode, int x, int y)
 	bool retBool = false;
 	POSITIONSTATE pState = checkPosition(x, y);
 	BOARDPOSITION currBoardPosition = gNode->gameBoard[x][y];
-	if(currBoardPosition == A_KING)
+	if(gNode->isMaxNode && currBoardPosition == A_KING)
 	{
 		if(pState == MIDDLE || pState == TOP_ROW || pState == TOP_LEFT || pState == LEFT_COLUMN)
 		{
@@ -424,9 +415,14 @@ bool getBackwardMoves(GameNode *gNode, int x, int y)
 			int newY = y + 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(gNode);
+				GameNode *newGameNode = new GameNode(*gNode);
 				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 				newGameNode->gameBoard[newX][newY] = A_KING;
+				newGameNode->fromX = x;
+				newGameNode->fromY = y;
+				newGameNode->toX = newX;
+				newGameNode->toY = newY;
+				newGameNode->setName();
 				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
@@ -438,16 +434,21 @@ bool getBackwardMoves(GameNode *gNode, int x, int y)
 			int newY = y + 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(gNode);
+				GameNode *newGameNode = new GameNode(*gNode);
 				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 				newGameNode->gameBoard[newX][newY] = A_KING;
+				newGameNode->fromX = x;
+				newGameNode->fromY = y;
+				newGameNode->toX = newX;
+				newGameNode->toY = newY;
+				newGameNode->setName();
 				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
 			}
 		}
 	}
-	else if(currBoardPosition == B_KING)
+	else if(!(gNode->isMaxNode) && currBoardPosition == B_KING)
 	{
 		if(pState == MIDDLE || pState == BOTTOM_ROW || pState == BOTTOM_LEFT || pState == LEFT_COLUMN)
 		{
@@ -455,9 +456,14 @@ bool getBackwardMoves(GameNode *gNode, int x, int y)
 			int newY = y - 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(gNode);
+				GameNode *newGameNode = new GameNode(*gNode);
 				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 				newGameNode->gameBoard[newX][newY] = B_KING;
+				newGameNode->fromX = x;
+				newGameNode->fromY = y;
+				newGameNode->toX = newX;
+				newGameNode->toY = newY;
+				newGameNode->setName();
 				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
@@ -469,9 +475,14 @@ bool getBackwardMoves(GameNode *gNode, int x, int y)
 			int newY = y - 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(gNode);
+				GameNode *newGameNode = new GameNode(*gNode);
 				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 				newGameNode->gameBoard[newX][newY] = B_KING;
+				newGameNode->fromX = x;
+				newGameNode->fromY = y;
+				newGameNode->toX = newX;
+				newGameNode->toY = newY;
+				newGameNode->setName();
 				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
@@ -488,7 +499,7 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 	POSITIONSTATE pState = checkPosition(x, y);
 	BOARDPOSITION currBoardPosition = gNode->gameBoard[x][y];
 	bool killedKing = false;
-	if(currBoardPosition == A_KING)
+	if(gNode->isMaxNode && currBoardPosition == A_KING)
 	{
 		if(pState == MIDDLE || pState == TOP_ROW || pState == TOP_LEFT || pState == LEFT_COLUMN)
 		{
@@ -500,12 +511,17 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 				newY += 1;
 				if(newX < BOARD_COL_NUM && newY < BOARD_ROW_NUM && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(gNode);
+					GameNode *newGameNode = new GameNode(*gNode);
 					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[x + 1][y + 1] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[newX][newY] = A_KING;
 					if(killedKing) newGameNode->heuristics += 2;
 					else ++(newGameNode->heuristics);
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
 					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
@@ -522,12 +538,17 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 				newY += 1;
 				if(newX >= 0 && newY < BOARD_ROW_NUM && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(gNode);
+					GameNode *newGameNode = new GameNode(*gNode);
 					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[x - 1][y + 1] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[newX][newY] = A_KING;
 					if(killedKing) newGameNode->heuristics += 2;
 					else ++(newGameNode->heuristics);
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
 					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
@@ -535,7 +556,7 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 			}
 		}
 	}
-	else if(currBoardPosition == B_KING)
+	else if(!(gNode->isMaxNode) && currBoardPosition == B_KING)
 	{
 		if(pState == MIDDLE || pState == BOTTOM_ROW || pState == BOTTOM_LEFT || pState == LEFT_COLUMN)
 		{
@@ -547,12 +568,17 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 				newY -= 1;
 				if(newX < BOARD_COL_NUM && newY >= 0 && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(gNode);
+					GameNode *newGameNode = new GameNode(*gNode);
 					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[x + 1][y - 1] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[newX][newY] = B_KING;
 					if(killedKing) newGameNode->heuristics -= 2;
 					else --(newGameNode->heuristics);
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
 					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
@@ -569,12 +595,17 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 				newY -= 1;
 				if(newX >= 0 && newY >= 0 && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(gNode);
+					GameNode *newGameNode = new GameNode(*gNode);
 					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[x - 1][y - 1] = EMPTY_DARK_SQUARE;
 					newGameNode->gameBoard[newX][newY] = B_KING;
 					if(killedKing) newGameNode->heuristics -= 2;
 					else --(newGameNode->heuristics);
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
 					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
@@ -611,7 +642,7 @@ POSITIONSTATE checkPosition(int x, int y)
 	else return MIDDLE;
 }
 
-bool checkKingship(int x, int y, BOARDPOSITION bPosition)
+bool checkKingship(int x, int y, const BOARDPOSITION bPosition)
 {
 	POSITIONSTATE pState = checkPosition(x, y);
 
@@ -628,130 +659,94 @@ bool checkKingship(int x, int y, BOARDPOSITION bPosition)
 	return false;
 }
 
-void kingship()
+bool anyPiecesLeft(GameNode *gNode)
 {
-	POSITIONSTATE pState;
-
-	for(int i = 0; i < APieces.size(); ++i)
+	BOARDPOSITION playerPiece, kingPiece;
+	if(gNode->isMaxNode)
 	{
-		pState = checkPosition(APieces[i].pos.x, APieces[i].pos.y);
-		if(APieces[i].identity == A_PIECE && (pState == TOP_ROW || pState == TOP_LEFT || pState == TOP_RIGHT))
-		{
-			APieces[i].identity = A_KING;
-		}
+		playerPiece = A_PIECE;
+		kingPiece = A_KING;
+	}
+	else
+	{
+		playerPiece = B_PIECE;
+		kingPiece = B_KING;
 	}
 
-	for(int i = 0; i < BPieces.size(); ++i)
+	for(int i = 0; i < BOARD_ROW_NUM; ++i)
 	{
-		pState = checkPosition(BPieces[i].pos.x, BPieces[i].pos.y);
-		if(BPieces[i].identity == B_PIECE && (pState == BOTTOM_ROW || pState == BOTTOM_LEFT || pState == BOTTOM_RIGHT))
+		for(int j = 0; j < BOARD_COL_NUM; ++j)
 		{
-			BPieces[i].identity = B_KING;
+			if(gNode->gameBoard[i][j] == playerPiece || gNode->gameBoard[i][j] == kingPiece)
+			{
+				return true;
+			}
 		}
 	}
-}
-
-int currentHeuristics()
-{
-	int retValue = 0;
-	int i = 0, j = 0;
-
-	while(i < APieces.size() || j < BPieces.size())
-	{
-		if(i < APieces.size() && j < BPieces.size())
-		{
-			if(APieces[i].identity == A_PIECE && BPieces[j].identity == B_KING)
-			{
-				--retValue;
-			}
-			else if(APieces[i].identity == A_KING && BPieces[j].identity == B_PIECE)
-			{
-				++retValue;
-			}
-			++i;
-			++j;
-		}
-		else if(i < APieces.size())
-		{
-			if(APieces[i].identity == A_PIECE) ++retValue;
-			else retValue += 2;
-			++i;
-		}
-		else
-		{
-			if(BPieces[j].identity == B_PIECE) --retValue;
-			else retValue -= 2;
-			++j;
-		}
-	}
-
-	return retValue;
-}
-
-void updateHeuristics(vector<GameMove>& moves)
-{
-	int cHeuristics = currentHeuristics();
-	for(int i = 0; i < moves.size(); ++i)
-	{
-		if(moves[i].AMoved)
-		{
-			if(moves[i].isJump)
-			{
-				++cHeuristics;
-				if(BPieces.size() == 1) //If the opponent has no pieces left
-				{
-					cHeuristics = INT_MAX;
-					continue;
-				}
-			}
-			if(moves[i].killedKing) ++cHeuristics;
-			if(moves[i].upgrade) ++cHeuristics;
-		}
-		else
-		{
-			if(moves[i].isJump)
-			{
-				--cHeuristics;
-				if(APieces.size() == 1) //If the opponent has no pieces left
-				{
-					cHeuristics = INT_MIN;
-					continue;
-				}
-			}
-			if(moves[i].killedKing) --cHeuristics;
-			if(moves[i].upgrade) --cHeuristics;
-		}
-		moves[i].hValue = cHeuristics;
-	}
+	return false;
 }
 
 int gameMaxValue(GameNode *node, int alpha, int beta)
 {
 	if(node->successors.empty())
 	{
-		//node->printData();
+		cout << "Heuristic value of the current board = " << node->heuristics << "." << endl;
+		heuristicPrinted = true;
 		return node->heuristics;
 	}
 
 	node->alpha = alpha;
 	node->beta = beta;
-	node->printAlphaBeta();
 	for(int i = 0; i < node->successors.size(); ++i)
 	{
+		if(heuristicPrinted)
+		{
+			for(int j = 0; j < node->depth - 1; ++j)
+			{
+				cout << "\t";
+			}
+			if(node->depth - 1 >= 0) cout << "Depth " << node->depth - 1 << ": ";
+		}
+		if(node->depth != 0)
+		{
+			cout << node->name << endl;
+		}
+		node->printDepth();
 		node->alpha = max(node->alpha, gameMinValue(node->successors[i], node->alpha, node->beta));
-		node->printAlphaBeta();
 		if(node->alpha >= node->beta)
 		{
-			cout << "Pruning: ";
-			node->printAlphaBeta();
-			for(int j = i + 1; j < node->successors.size(); ++j)
+			for(int j = 0; j < node->depth; ++j)
 			{
-				cout << "Pruning: " << node->successors[j]->name << endl;
+				cout << "\t";
 			}
-			node->deleteNode();
+			cout << "Depth " << node->depth << ": " << "Pruning Player B's moves: ";
+			int nextIndex = i + 1;
+			if(node->successors.size() - nextIndex > 0)
+			{
+				node->successors[nextIndex]->printPruningInfo();
+				for(int j = nextIndex + 1; j < node->successors.size(); ++j)
+				{
+					cout << ", ";
+					node->successors[j]->printPruningInfo();
+				}
+				cout << "; ";
+
+				//Delete the nodes
+				for(int j = nextIndex; j < node->successors.size(); ++j)
+				{
+					node->successors[j]->deleteNode();
+				}
+			}
+			else
+			{
+				cout << "<No moves> ";
+			}
+			cout << "Alpha = " << node->alpha << "; Beta = " << node->beta << "." << endl;
+			heuristicPrinted = false;
 			return node->beta;
 		}
 	}
+	heuristicPrinted = false;
 	return node->alpha;
 }
 
@@ -759,40 +754,78 @@ int gameMinValue(GameNode *node, int alpha, int beta)
 {
 	if(node->successors.empty())
 	{
-		//node->printData();
+		cout << "Heuristic value of the current board = " << node->heuristics << "." << endl;
+		heuristicPrinted = true;
 		return node->heuristics;
 	}
 
 	node->alpha = alpha;
 	node->beta = beta;
-	node->printAlphaBeta();
 	for(int i = 0; i < node->successors.size(); ++i)
 	{
+		if(heuristicPrinted)
+		{
+			for(int j = 0; j < node->depth - 1; ++j)
+			{
+				cout << "\t";
+			}
+			if(node->depth - 1 >= 0) cout << "Depth " << node->depth - 1 << ": ";
+		}
+		if(node->depth != 0)
+		{
+			cout << node->name << endl;
+		}
+		node->printDepth();
 		node->beta = min(node->beta, gameMaxValue(node->successors[i], node->alpha, node->beta));
-		node->printAlphaBeta();
 		if(node->beta <= node->alpha)
 		{
-			cout << "Pruning: ";
-			node->printAlphaBeta();
-			for(int j = i + 1; j < node->successors.size(); ++j)
+			for(int j = 0; j < node->depth; ++j)
 			{
-				cout << "Pruning: " << node->successors[j]->name << endl;
+				cout << "\t";
 			}
-			node->deleteNode();
+			cout << "Depth " << node->depth << ": " << "Pruning Player A's moves: ";
+			int nextIndex = i + 1;
+			if(node->successors.size() - nextIndex > 0)
+			{
+				node->successors[nextIndex]->printPruningInfo();
+				for(int j = nextIndex + 1; j < node->successors.size(); ++j)
+				{
+					cout << ", ";
+					node->successors[j]->printPruningInfo();
+				}
+				cout << "; ";
+
+				//Delete the nodes
+				for(int j = nextIndex; j < node->successors.size(); ++j)
+				{
+					node->successors[j]->deleteNode();
+				}
+			}
+			else
+			{
+				cout << "<No moves> ";
+			}
+			cout << "Alpha = " << node->alpha << "; Beta = " << node->beta << "." << endl;
+			heuristicPrinted = false;
 			return node->alpha;
 		}
 	}
+	heuristicPrinted = false;
 	return node->beta;
 }
 
 int main(int argc, char **argv)
 {
-	/*
-	if(!InputBoard(""))
+	if(!InputBoard("Test.txt"))
 	{
 		return 1; //Exit due to error
 	}
-	*/
+
+	if(bDebug)
+	{
+		startBoard->printGameBoard();
+		cout << endl;
+	}
 
 	/*
 	GameNode a0(true);
@@ -895,6 +928,111 @@ int main(int argc, char **argv)
 
 	gameMaxValue(&a0, INT_MIN, INT_MAX);
 	*/
+
+	//Prepare the Minimax game tree first
+	bool playerFlag = true; //Player A / Max starts first
+	BOARDPOSITION playerPiece, kingPiece;
+
+	deque<GameNode*> nodeList; //Used to perform BFS on the minimax game tree
+	nodeList.push_back(startBoard); //Start off using the starting checkerboard
+	GameNode *currentNode;
+
+	int currentDepth = 1;
+
+	//While we have not reached the depth we want and we still have something left in the node list
+	while(currentDepth <= searchDepth && nodeList.size() != 0)
+	{
+		if(bDebug) cout << "============================" << endl;
+
+		//Grab the first node in the queue
+		currentNode = nodeList.front();
+		nodeList.pop_front();
+
+		//If the current node is ever different than the player flag then we've moved down a depth
+		if(currentNode->isMaxNode ^ playerFlag)
+		{
+			++currentDepth;
+			playerFlag = !playerFlag;
+		}
+
+		//If there are no pieces left for the current player then this is a victory for the other player
+		if(!anyPiecesLeft(currentNode))
+		{
+			if(currentNode->isMaxNode) currentNode->heuristics = INT_MIN;
+			else currentNode->heuristics = INT_MAX;
+			continue; //This node won't have any successors so just move on to the next
+		}
+
+		//Use the flag to determine which player to consider for this turn
+		if(currentNode->isMaxNode)
+		{
+			playerPiece = A_PIECE;
+			kingPiece = A_KING;
+		}
+		else
+		{
+			playerPiece = B_PIECE;
+			kingPiece = B_KING;
+		}
+
+		//First check if there are jumps first
+		for(int i = 0; i < BOARD_ROW_NUM; ++i)
+		{
+			for(int j = 0; j < BOARD_COL_NUM; ++j)
+			{
+				getForwardJumps(currentNode, j, i);
+				getBackwardJumps(currentNode, j, i);
+			}
+		}
+
+		//If there are no jumps then check for moves
+		if(currentNode->successors.size() == 0)
+		{
+			//Loop through the board
+			for(int i = 0; i < BOARD_ROW_NUM; ++i)
+			{
+				for(int j = 0; j < BOARD_COL_NUM; ++j)
+				{
+					getForwardMoves(currentNode, j, i);
+					getBackwardMoves(currentNode, j, i);
+				}
+			}
+
+			//If there are still no moves after doing everything then this is a victory for the other player
+			if(currentNode->successors.size() == 0)
+			{
+				if(currentNode->isMaxNode) currentNode->heuristics = INT_MIN;
+				else currentNode->heuristics = INT_MAX;
+				continue; //This node won't have any successors so just move on to the next
+			}
+		}
+
+		//Push back all the successors to the back of the queue
+		for(int k = 0; k < currentNode->successors.size(); ++k)
+		{
+			nodeList.push_back(currentNode->successors[k]);
+			if(bDebug)
+			{
+				currentNode->successors[k]->printGameBoard();
+				cout << endl;
+			}
+		}
+
+		if(bDebug)
+		{
+			cout << "depth: " << currentDepth << " ============================" << endl;
+			if(currentNode->successors.size() != 0)
+			{
+				if(currentNode->successors[0]->isMaxNode) cout << "Max Node" << endl;
+				else cout << "Min Node" << endl;
+			}
+		}
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+	//Run Minimax with alphabeta pruning
+	gameMaxValue(startBoard, INT_MIN, INT_MAX);
+	/////////////////////////////////////////////////////////////////////////////////////////
 
 	getchar();
 	return 0;

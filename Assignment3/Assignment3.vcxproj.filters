@@ -18,17 +18,11 @@
     <ClCompile Include="Minimax.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CheckerPiece.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GameTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CheckerPiece.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GameTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>

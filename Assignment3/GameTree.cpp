@@ -2,12 +2,15 @@
 #include <climits>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 using std::cout;
 using std::endl;
+using std::string;
+using std::stringstream;
 
 GameNode::GameNode():
-heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true)
+heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true), depth(-1), fromX(-1), fromY(-1), toX(-1), toY(-1)
 {
 	for(int i = 0; i < BOARD_ROW_NUM; ++i)
 	{
@@ -19,7 +22,7 @@ heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true)
 }
 
 GameNode::GameNode(const GameNode& pGameNode):
-heuristics(pGameNode.heuristics), alpha(INT_MIN), beta(INT_MAX), isMaxNode(!(pGameNode.isMaxNode))
+heuristics(pGameNode.heuristics), alpha(INT_MIN), beta(INT_MAX), isMaxNode(!(pGameNode.isMaxNode)), depth(pGameNode.depth + 1), fromX(-1), fromY(-1), toX(-1), toY(-1)
 {
 	for(int i = 0; i < BOARD_ROW_NUM; ++i)
 	{
@@ -31,7 +34,7 @@ heuristics(pGameNode.heuristics), alpha(INT_MIN), beta(INT_MAX), isMaxNode(!(pGa
 }
 
 GameNode::GameNode(BOARDPOSITION pGameBoard[BOARD_ROW_NUM][BOARD_COL_NUM]):
-heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true)
+heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true), depth(-1), fromX(-1), fromY(-1), toX(-1), toY(-1)
 {
 	for(int i = 0; i < BOARD_ROW_NUM; ++i)
 	{
@@ -58,7 +61,7 @@ heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(true)
 }
 
 GameNode::GameNode(bool pIsMaxNode):
-heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode)
+heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode), depth(-1), fromX(-1), fromY(-1), toX(-1), toY(-1)
 {
 	for(int i = 0; i < BOARD_ROW_NUM; ++i)
 	{
@@ -70,7 +73,7 @@ heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode)
 }
 
 GameNode::GameNode(BOARDPOSITION pGameBoard[BOARD_ROW_NUM][BOARD_COL_NUM], bool pIsMaxNode):
-heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode)
+heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode), depth(-1), fromX(-1), fromY(-1), toX(-1), toY(-1)
 {
 	for(int i = 0; i < BOARD_ROW_NUM; ++i)
 	{
@@ -98,7 +101,7 @@ heuristics(0), alpha(INT_MIN), beta(INT_MAX), isMaxNode(pIsMaxNode)
 
 GameNode::~GameNode()
 {
-	deleteNode();
+	//deleteNode();
 }
 
 void GameNode::deleteNode()
@@ -114,9 +117,23 @@ void GameNode::deleteNode()
 	delete this;
 }
 
-void GameNode::printAlphaBeta()
+void GameNode::setName()
 {
-	cout << name << "(";
+	stringstream ssOut;
+	ssOut << depth << " " << fromX << " " << fromY << " " << toX << " " << toY;
+
+	string depthStr, fromXStr, fromYStr, toXStr, toYStr;
+	ssOut >> depthStr >> fromXStr >> fromYStr >> toXStr >> toYStr;
+
+	name = "Player ";
+	if(isMaxNode) name += "B ";
+	else name += "A ";
+	name += "moves the piece at (" + fromXStr + ", " + fromYStr + ") to (" + toXStr + ", " + toYStr + ").";
+}
+
+void GameNode::printAlphaBeta() const
+{
+	cout << "Alphabeta: (";
 
 	if(alpha == INT_MIN) cout << "-inf";
 	else cout << alpha;
@@ -129,13 +146,47 @@ void GameNode::printAlphaBeta()
 	cout << ")" << endl;
 }
 
-void GameNode::printGameBoard()
+void GameNode::printDepth() const
+{
+	for(int i = 0; i < depth; ++i)
+	{
+		cout << "\t";
+	}
+	cout << "Depth " << depth << ": ";
+}
+
+void GameNode::printPruningInfo() const
+{
+	cout << "(" << fromX << ", " << fromY << ") to (" << toX << ", " << toY << ")";
+}
+
+void GameNode::printGameBoard() const
 {
 	for(int i = 0; i < BOARD_ROW_NUM; ++i)
 	{
 		for(int j = 0; j < BOARD_COL_NUM; ++j)
 		{
-			cout << gameBoard[i][j];
+			switch(gameBoard[j][i])
+			{
+			case LIGHT_SQUARE:
+				cout << "X";
+				break;
+			case EMPTY_DARK_SQUARE:
+				cout << ".";
+				break;
+			case A_PIECE:
+				cout << "o";
+				break;
+			case B_PIECE:
+				cout << "*";
+				break;
+			case A_KING:
+				cout << "k";
+				break;
+			case B_KING:
+				cout << "K";
+				break;
+			}
 		}
 		cout << endl;
 	}
