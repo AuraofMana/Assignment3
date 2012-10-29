@@ -692,6 +692,7 @@ int gameMaxValue(GameNode *node, int alpha, int beta)
 	{
 		cout << "Heuristic value of the current board = " << node->heuristics << "." << endl;
 		heuristicPrinted = true;
+		//node->printGameBoard();
 		return node->heuristics;
 	}
 
@@ -705,7 +706,7 @@ int gameMaxValue(GameNode *node, int alpha, int beta)
 	for(int i = 0; i < node->successors.size(); ++i)
 	{
 		node->alpha = max(node->alpha, gameMinValue(node->successors[i], node->alpha, node->beta));
-		if(node->printDepth(-1)) cout << node->name << endl;
+		if(node->printDepth(-1)) cout << node->successors[i]->name << endl;
 		if(i + 1 < node->successors.size()) node->printDepth();
 		if(node->alpha >= node->beta)
 		{
@@ -747,6 +748,7 @@ int gameMinValue(GameNode *node, int alpha, int beta)
 	{
 		cout << "Heuristic value of the current board = " << node->heuristics << "." << endl;
 		heuristicPrinted = true;
+		//node->printGameBoard();
 		return node->heuristics;
 	}
 
@@ -760,7 +762,7 @@ int gameMinValue(GameNode *node, int alpha, int beta)
 	for(int i = 0; i < node->successors.size(); ++i)
 	{
 		node->beta = min(node->beta, gameMaxValue(node->successors[i], node->alpha, node->beta));
-		if(node->printDepth(-1)) cout << node->name << endl;
+		if(node->printDepth(-1)) cout << node->successors[i]->name << endl;
 		if(i + 1 < node->successors.size()) node->printDepth();
 		if(node->beta <= node->alpha)
 		{
@@ -798,9 +800,22 @@ int gameMinValue(GameNode *node, int alpha, int beta)
 
 int main(int argc, char **argv)
 {
+	/*
+	if(argc != 2)
+	{
+		cout << "Please run the program like this: ./" << argv[0] << " <inputfile>" << endl;
+		return 1;
+	}
+
+	if(!InputBoard(argv[1]))
+	{
+		return 2; //Exit due to error
+	}
+	*/
+
 	if(!InputBoard("Test.txt"))
 	{
-		return 1; //Exit due to error
+		return 2; //Exit due to error
 	}
 
 	if(bDebug)
@@ -808,108 +823,6 @@ int main(int argc, char **argv)
 		startBoard->printGameBoard();
 		cout << endl;
 	}
-
-	/*
-	GameNode a0(true);
-	a0.name = "a0";
-	GameTree checkerTree(&a0);
-	
-	GameNode b0(false);
-	b0.name = "b0";
-	a0.successors.push_back(&b0);
-	GameNode b1(false);
-	b1.name = "b1";
-	a0.successors.push_back(&b1);
-
-	GameNode c0(true);
-	c0.name = "c0";
-	b0.successors.push_back(&c0);
-	GameNode c1(true);
-	c1.name = "c1";
-	b0.successors.push_back(&c1);
-	GameNode c2(true);
-	c2.name = "c2";
-	b1.successors.push_back(&c2);
-	GameNode c3(true);
-	c3.name = "c3";
-	b1.successors.push_back(&c3);
-
-	GameNode d0(false);
-	d0.name = "d0";
-	c0.successors.push_back(&d0);
-	GameNode d1(false);
-	d1.name = "d1";
-	c0.successors.push_back(&d1);
-	GameNode d2(false);
-	d2.name = "d2";
-	c1.successors.push_back(&d2);
-	GameNode d3(false);
-	d3.name = "d3";
-	c1.successors.push_back(&d3);
-	GameNode d4(false);
-	d4.name = "d4";
-	c2.successors.push_back(&d4);
-	GameNode d5(false);
-	d5.name = "d5";
-	c2.successors.push_back(&d5);
-	GameNode d6(false);
-	d6.name = "d6";
-	c3.successors.push_back(&d6);
-	GameNode d7(false);
-	d7.name = "d7";
-	c3.successors.push_back(&d7);
-
-	GameNode e0(0, true);
-	e0.name = "e0";
-	d0.successors.push_back(&e0);
-	GameNode e1(5, true);
-	e1.name = "e1";
-	d0.successors.push_back(&e1);
-	GameNode e2(-3, true);
-	e2.name = "e2";
-	d1.successors.push_back(&e2);
-	GameNode e3(3, true);
-	e3.name = "e3";
-	d1.successors.push_back(&e3);
-	GameNode e4(3, true);
-	e4.name = "e4";
-	d2.successors.push_back(&e4);
-	GameNode e5(4, true);
-	e5.name = "e5";
-	d2.successors.push_back(&e5);
-	GameNode e6(-2, true);
-	e6.name = "e6";
-	d3.successors.push_back(&e6);
-	GameNode e7(3, true);
-	e7.name = "e7";
-	d3.successors.push_back(&e7);
-	GameNode e8(5, true);
-	e8.name = "e8";
-	d4.successors.push_back(&e8);
-	GameNode e9(1, true);
-	e9.name = "e9";
-	d4.successors.push_back(&e9);
-	GameNode ea(-3, true);
-	ea.name = "ea";
-	d5.successors.push_back(&ea);
-	GameNode eb(0, true);
-	eb.name = "eb";
-	d5.successors.push_back(&eb);
-	GameNode ec(6, true);
-	ec.name = "ec";
-	d6.successors.push_back(&ec);
-	GameNode ed(8, true);
-	ed.name = "ed";
-	d6.successors.push_back(&ed);
-	GameNode ee(9, true);
-	ee.name = "ee";
-	d7.successors.push_back(&ee);
-	GameNode ef(-3, true);
-	ef.name = "ef";
-	d7.successors.push_back(&ef);
-
-	gameMaxValue(&a0, INT_MIN, INT_MAX);
-	*/
 
 	//Prepare the Minimax game tree first
 	bool playerFlag = true; //Player A / Max starts first
@@ -930,6 +843,14 @@ int main(int argc, char **argv)
 		currentNode = nodeList.front();
 		nodeList.pop_front();
 
+		/*
+		if(currentNode->name.compare("Player B moves the piece at (1, 2) to (2, 1).") == 0)
+		{
+			cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << endl;
+			currentNode->printGameBoard();
+		}
+		*/
+
 		//If the current node is ever different than the player flag then we've moved down a depth
 		if(currentNode->isMaxNode ^ playerFlag)
 		{
@@ -940,6 +861,7 @@ int main(int argc, char **argv)
 		//If there are no pieces left for the current player then this is a victory for the other player
 		if(!anyPiecesLeft(currentNode))
 		{
+			currentNode->printGameBoard();
 			if(currentNode->isMaxNode) currentNode->heuristics = INT_MIN;
 			else currentNode->heuristics = INT_MAX;
 			continue; //This node won't have any successors so just move on to the next
@@ -983,6 +905,7 @@ int main(int argc, char **argv)
 			//If there are still no moves after doing everything then this is a victory for the other player
 			if(currentNode->successors.size() == 0)
 			{
+				currentNode->printGameBoard();
 				if(currentNode->isMaxNode) currentNode->heuristics = INT_MIN;
 				else currentNode->heuristics = INT_MAX;
 				continue; //This node won't have any successors so just move on to the next
@@ -995,6 +918,7 @@ int main(int argc, char **argv)
 			nodeList.push_back(currentNode->successors[k]);
 			if(bDebug)
 			{
+				cout << currentNode->successors[k]->name << endl;
 				currentNode->successors[k]->printGameBoard();
 				cout << endl;
 			}
@@ -1028,7 +952,15 @@ int main(int argc, char **argv)
 		}
 	}
 	
-	cout << "\nAnswer: " << chosenSuccessor->name << endl;
+	cout << "\nAnswer: ";
+	if(chosenSuccessor)
+	{
+		cout << chosenSuccessor->name << endl;
+	}
+	else
+	{
+		cout << "There are no successors to the current board." << endl;
+	}
 
 	getchar();
 	return 0;

@@ -120,7 +120,7 @@ void GameNode::deleteNode()
 void GameNode::setName()
 {
 	stringstream ssOut;
-	ssOut << depth << " " << fromX << " " << fromY << " " << toX << " " << toY;
+	ssOut << depth << " " << (fromX + 1) << " " << (fromY + 1) << " " << (toX + 1) << " " << (toY + 1);
 
 	string depthStr, fromXStr, fromYStr, toXStr, toYStr;
 	ssOut >> depthStr >> fromXStr >> fromYStr >> toXStr >> toYStr;
@@ -128,7 +128,8 @@ void GameNode::setName()
 	name = "Player ";
 	if(isMaxNode) name += "B ";
 	else name += "A ";
-	name += "moves the piece at (" + fromXStr + ", " + fromYStr + ") to (" + toXStr + ", " + toYStr + ").";
+	//name += "moves the piece at (" + fromXStr + ", " + fromYStr + ") to (" + toXStr + ", " + toYStr + ").";
+	name += "moves the piece at (" + fromYStr + ", " + fromXStr + ") to (" + toYStr + ", " + toXStr + ").";
 }
 
 void GameNode::printAlphaBeta() const
@@ -160,7 +161,7 @@ bool GameNode::printDepth(int pDepth) const
 
 void GameNode::printPruningInfo() const
 {
-	cout << "(" << fromX << ", " << fromY << ") to (" << toX << ", " << toY << ")";
+	cout << "(" << fromY + 1 << ", " << fromX + 1 << ") to (" << toY + 1 << ", " << toX + 1 << ")";
 }
 
 void GameNode::printGameBoard() const
