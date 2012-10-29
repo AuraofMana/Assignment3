@@ -128,24 +128,27 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 			int newY = y - 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(*gNode);
-				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-				if(checkKingship(newX, newY, currBoardPosition))
+				if(gNode->depth < searchDepth)
 				{
-					newGameNode->gameBoard[newX][newY] = A_KING;
-					++(newGameNode->heuristics);
+					GameNode *newGameNode = new GameNode(*gNode);
+					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+					if(checkKingship(newX, newY, currBoardPosition))
+					{
+						newGameNode->gameBoard[newX][newY] = A_KING;
+						++(newGameNode->heuristics);
+					}
+					else
+					{
+						if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
+						else newGameNode->gameBoard[newX][newY] = A_KING;
+					}
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
+					gNode->successors.push_back(newGameNode);
 				}
-				else
-				{
-					if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
-					else newGameNode->gameBoard[newX][newY] = A_KING;
-				}
-				newGameNode->fromX = x;
-				newGameNode->fromY = y;
-				newGameNode->toX = newX;
-				newGameNode->toY = newY;
-				newGameNode->setName();
-				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
 			}
@@ -156,24 +159,27 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 			int newY = y - 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(*gNode);
-				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-				if(checkKingship(newX, newY, currBoardPosition))
+				if(gNode->depth < searchDepth)
 				{
-					newGameNode->gameBoard[newX][newY] = A_KING;
-					++(newGameNode->heuristics);
+					GameNode *newGameNode = new GameNode(*gNode);
+					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+					if(checkKingship(newX, newY, currBoardPosition))
+					{
+						newGameNode->gameBoard[newX][newY] = A_KING;
+						++(newGameNode->heuristics);
+					}
+					else
+					{
+						if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
+						else newGameNode->gameBoard[newX][newY] = A_KING;
+					}
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
+					gNode->successors.push_back(newGameNode);
 				}
-				else
-				{
-					if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
-					else newGameNode->gameBoard[newX][newY] = A_KING;
-				}
-				newGameNode->fromX = x;
-				newGameNode->fromY = y;
-				newGameNode->toX = newX;
-				newGameNode->toY = newY;
-				newGameNode->setName();
-				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
 			}
@@ -187,24 +193,27 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 			int newY = y + 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(*gNode);
-				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-				if(checkKingship(newX, newY, currBoardPosition))
+				if(gNode->depth < searchDepth)
 				{
-					newGameNode->gameBoard[newX][newY] = B_KING;
-					--(newGameNode->heuristics);
+					GameNode *newGameNode = new GameNode(*gNode);
+					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+					if(checkKingship(newX, newY, currBoardPosition))
+					{
+						newGameNode->gameBoard[newX][newY] = B_KING;
+						--(newGameNode->heuristics);
+					}
+					else
+					{
+						if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
+						else newGameNode->gameBoard[newX][newY] = B_KING;
+					}
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
+					gNode->successors.push_back(newGameNode);
 				}
-				else
-				{
-					if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
-					else newGameNode->gameBoard[newX][newY] = B_KING;
-				}
-				newGameNode->fromX = x;
-				newGameNode->fromY = y;
-				newGameNode->toX = newX;
-				newGameNode->toY = newY;
-				newGameNode->setName();
-				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
 			}
@@ -215,24 +224,27 @@ bool getForwardMoves(GameNode *gNode, int x, int y)
 			int newY = y + 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(*gNode);
-				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-				if(checkKingship(newX, newY, currBoardPosition))
+				if(gNode->depth < searchDepth)
 				{
-					newGameNode->gameBoard[newX][newY] = B_KING;
-					--(newGameNode->heuristics);
+					GameNode *newGameNode = new GameNode(*gNode);
+					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+					if(checkKingship(newX, newY, currBoardPosition))
+					{
+						newGameNode->gameBoard[newX][newY] = B_KING;
+						--(newGameNode->heuristics);
+					}
+					else
+					{
+						if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
+						else newGameNode->gameBoard[newX][newY] = B_KING;
+					}
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
+					gNode->successors.push_back(newGameNode);
 				}
-				else
-				{
-					if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
-					else newGameNode->gameBoard[newX][newY] = B_KING;
-				}
-				newGameNode->fromX = x;
-				newGameNode->fromY = y;
-				newGameNode->toX = newX;
-				newGameNode->toY = newY;
-				newGameNode->setName();
-				gNode->successors.push_back(newGameNode);
 
 				retBool = true;
 			}
@@ -260,27 +272,30 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 				newY -= 1;
 				if(newX < BOARD_COL_NUM && newY >= 0 && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(*gNode);
-					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[x + 1][y - 1] = EMPTY_DARK_SQUARE;
-					if(checkKingship(newX, newY, currBoardPosition))
+					if(gNode->depth < searchDepth)
 					{
-						newGameNode->gameBoard[newX][newY] = A_KING;
-						++(newGameNode->heuristics);
+						GameNode *newGameNode = new GameNode(*gNode);
+						newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[x + 1][y - 1] = EMPTY_DARK_SQUARE;
+						if(checkKingship(newX, newY, currBoardPosition))
+						{
+							newGameNode->gameBoard[newX][newY] = A_KING;
+							++(newGameNode->heuristics);
+						}
+						else
+						{
+							if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
+							else newGameNode->gameBoard[newX][newY] = A_KING;
+						}
+						if(killedKing) newGameNode->heuristics += 2;
+						else ++(newGameNode->heuristics);
+						newGameNode->fromX = x;
+						newGameNode->fromY = y;
+						newGameNode->toX = newX;
+						newGameNode->toY = newY;
+						newGameNode->setName();
+						gNode->successors.push_back(newGameNode);
 					}
-					else
-					{
-						if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
-						else newGameNode->gameBoard[newX][newY] = A_KING;
-					}
-					if(killedKing) newGameNode->heuristics += 2;
-					else ++(newGameNode->heuristics);
-					newGameNode->fromX = x;
-					newGameNode->fromY = y;
-					newGameNode->toX = newX;
-					newGameNode->toY = newY;
-					newGameNode->setName();
-					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
 				}
@@ -296,27 +311,30 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 				newY -= 1;
 				if(newX >= 0 && newY >= 0 && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(*gNode);
-					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[x - 1][y - 1] = EMPTY_DARK_SQUARE;
-					if(checkKingship(newX, newY, currBoardPosition))
+					if(gNode->depth < searchDepth)
 					{
-						newGameNode->gameBoard[newX][newY] = A_KING;
-						++(newGameNode->heuristics);
+						GameNode *newGameNode = new GameNode(*gNode);
+						newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[x - 1][y - 1] = EMPTY_DARK_SQUARE;
+						if(checkKingship(newX, newY, currBoardPosition))
+						{
+							newGameNode->gameBoard[newX][newY] = A_KING;
+							++(newGameNode->heuristics);
+						}
+						else
+						{
+							if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
+							else newGameNode->gameBoard[newX][newY] = A_KING;
+						}
+						if(killedKing) newGameNode->heuristics += 2;
+						else ++(newGameNode->heuristics);
+						newGameNode->fromX = x;
+						newGameNode->fromY = y;
+						newGameNode->toX = newX;
+						newGameNode->toY = newY;
+						newGameNode->setName();
+						gNode->successors.push_back(newGameNode);
 					}
-					else
-					{
-						if(currBoardPosition == A_PIECE) newGameNode->gameBoard[newX][newY] = A_PIECE;
-						else newGameNode->gameBoard[newX][newY] = A_KING;
-					}
-					if(killedKing) newGameNode->heuristics += 2;
-					else ++(newGameNode->heuristics);
-					newGameNode->fromX = x;
-					newGameNode->fromY = y;
-					newGameNode->toX = newX;
-					newGameNode->toY = newY;
-					newGameNode->setName();
-					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
 				}
@@ -335,27 +353,30 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 				newY += 1;
 				if(newX < BOARD_COL_NUM && newY < BOARD_ROW_NUM && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(*gNode);
-					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[x + 1][y + 1] = EMPTY_DARK_SQUARE;
-					if(checkKingship(newX, newY, currBoardPosition))
+					if(gNode->depth < searchDepth)
 					{
-						newGameNode->gameBoard[newX][newY] = B_KING;
-						--(newGameNode->heuristics);
+						GameNode *newGameNode = new GameNode(*gNode);
+						newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[x + 1][y + 1] = EMPTY_DARK_SQUARE;
+						if(checkKingship(newX, newY, currBoardPosition))
+						{
+							newGameNode->gameBoard[newX][newY] = B_KING;
+							--(newGameNode->heuristics);
+						}
+						else
+						{
+							if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
+							else newGameNode->gameBoard[newX][newY] = B_KING;
+						}
+						if(killedKing) newGameNode->heuristics -= 2;
+						else --(newGameNode->heuristics);
+						newGameNode->fromX = x;
+						newGameNode->fromY = y;
+						newGameNode->toX = newX;
+						newGameNode->toY = newY;
+						newGameNode->setName();
+						gNode->successors.push_back(newGameNode);
 					}
-					else
-					{
-						if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
-						else newGameNode->gameBoard[newX][newY] = B_KING;
-					}
-					if(killedKing) newGameNode->heuristics -= 2;
-					else --(newGameNode->heuristics);
-					newGameNode->fromX = x;
-					newGameNode->fromY = y;
-					newGameNode->toX = newX;
-					newGameNode->toY = newY;
-					newGameNode->setName();
-					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
 				}
@@ -371,27 +392,30 @@ bool getForwardJumps(GameNode *gNode, int x, int y)
 				newY += 1;
 				if(newX >= 0 && newY < BOARD_ROW_NUM && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(*gNode);
-					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[x - 1][y + 1] = EMPTY_DARK_SQUARE;
-					if(checkKingship(newX, newY, currBoardPosition))
+					if(gNode->depth < searchDepth)
 					{
-						newGameNode->gameBoard[newX][newY] = B_KING;
-						--(newGameNode->heuristics);
+						GameNode *newGameNode = new GameNode(*gNode);
+						newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[x - 1][y + 1] = EMPTY_DARK_SQUARE;
+						if(checkKingship(newX, newY, currBoardPosition))
+						{
+							newGameNode->gameBoard[newX][newY] = B_KING;
+							--(newGameNode->heuristics);
+						}
+						else
+						{
+							if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
+							else newGameNode->gameBoard[newX][newY] = B_KING;
+						}
+						if(killedKing) newGameNode->heuristics -= 2;
+						else --(newGameNode->heuristics);
+						newGameNode->fromX = x;
+						newGameNode->fromY = y;
+						newGameNode->toX = newX;
+						newGameNode->toY = newY;
+						newGameNode->setName();
+						gNode->successors.push_back(newGameNode);
 					}
-					else
-					{
-						if(currBoardPosition == B_PIECE) newGameNode->gameBoard[newX][newY] = B_PIECE;
-						else newGameNode->gameBoard[newX][newY] = B_KING;
-					}
-					if(killedKing) newGameNode->heuristics -= 2;
-					else --(newGameNode->heuristics);
-					newGameNode->fromX = x;
-					newGameNode->fromY = y;
-					newGameNode->toX = newX;
-					newGameNode->toY = newY;
-					newGameNode->setName();
-					gNode->successors.push_back(newGameNode);
 
 					retBool = true;
 				}
@@ -415,15 +439,18 @@ bool getBackwardMoves(GameNode *gNode, int x, int y)
 			int newY = y + 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(*gNode);
-				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-				newGameNode->gameBoard[newX][newY] = A_KING;
-				newGameNode->fromX = x;
-				newGameNode->fromY = y;
-				newGameNode->toX = newX;
-				newGameNode->toY = newY;
-				newGameNode->setName();
-				gNode->successors.push_back(newGameNode);
+				if(gNode->depth < searchDepth)
+				{
+					GameNode *newGameNode = new GameNode(*gNode);
+					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+					newGameNode->gameBoard[newX][newY] = A_KING;
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
+					gNode->successors.push_back(newGameNode);
+				}
 
 				retBool = true;
 			}
@@ -434,15 +461,18 @@ bool getBackwardMoves(GameNode *gNode, int x, int y)
 			int newY = y + 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(*gNode);
-				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-				newGameNode->gameBoard[newX][newY] = A_KING;
-				newGameNode->fromX = x;
-				newGameNode->fromY = y;
-				newGameNode->toX = newX;
-				newGameNode->toY = newY;
-				newGameNode->setName();
-				gNode->successors.push_back(newGameNode);
+				if(gNode->depth < searchDepth)
+				{
+					GameNode *newGameNode = new GameNode(*gNode);
+					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+					newGameNode->gameBoard[newX][newY] = A_KING;
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
+					gNode->successors.push_back(newGameNode);
+				}
 
 				retBool = true;
 			}
@@ -456,15 +486,18 @@ bool getBackwardMoves(GameNode *gNode, int x, int y)
 			int newY = y - 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(*gNode);
-				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-				newGameNode->gameBoard[newX][newY] = B_KING;
-				newGameNode->fromX = x;
-				newGameNode->fromY = y;
-				newGameNode->toX = newX;
-				newGameNode->toY = newY;
-				newGameNode->setName();
-				gNode->successors.push_back(newGameNode);
+				if(gNode->depth < searchDepth)
+				{
+					GameNode *newGameNode = new GameNode(*gNode);
+					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+					newGameNode->gameBoard[newX][newY] = B_KING;
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
+					gNode->successors.push_back(newGameNode);
+				}
 
 				retBool = true;
 			}
@@ -475,15 +508,18 @@ bool getBackwardMoves(GameNode *gNode, int x, int y)
 			int newY = y - 1;
 			if(gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 			{
-				GameNode *newGameNode = new GameNode(*gNode);
-				newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-				newGameNode->gameBoard[newX][newY] = B_KING;
-				newGameNode->fromX = x;
-				newGameNode->fromY = y;
-				newGameNode->toX = newX;
-				newGameNode->toY = newY;
-				newGameNode->setName();
-				gNode->successors.push_back(newGameNode);
+				if(gNode->depth < searchDepth)
+				{
+					GameNode *newGameNode = new GameNode(*gNode);
+					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+					newGameNode->gameBoard[newX][newY] = B_KING;
+					newGameNode->fromX = x;
+					newGameNode->fromY = y;
+					newGameNode->toX = newX;
+					newGameNode->toY = newY;
+					newGameNode->setName();
+					gNode->successors.push_back(newGameNode);
+				}
 
 				retBool = true;
 			}
@@ -511,18 +547,21 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 				newY += 1;
 				if(newX < BOARD_COL_NUM && newY < BOARD_ROW_NUM && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(*gNode);
-					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[x + 1][y + 1] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[newX][newY] = A_KING;
-					if(killedKing) newGameNode->heuristics += 2;
-					else ++(newGameNode->heuristics);
-					newGameNode->fromX = x;
-					newGameNode->fromY = y;
-					newGameNode->toX = newX;
-					newGameNode->toY = newY;
-					newGameNode->setName();
-					gNode->successors.push_back(newGameNode);
+					if(gNode->depth < searchDepth)
+					{
+						GameNode *newGameNode = new GameNode(*gNode);
+						newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[x + 1][y + 1] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[newX][newY] = A_KING;
+						if(killedKing) newGameNode->heuristics += 2;
+						else ++(newGameNode->heuristics);
+						newGameNode->fromX = x;
+						newGameNode->fromY = y;
+						newGameNode->toX = newX;
+						newGameNode->toY = newY;
+						newGameNode->setName();
+						gNode->successors.push_back(newGameNode);
+					}
 
 					retBool = true;
 				}
@@ -538,18 +577,21 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 				newY += 1;
 				if(newX >= 0 && newY < BOARD_ROW_NUM && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(*gNode);
-					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[x - 1][y + 1] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[newX][newY] = A_KING;
-					if(killedKing) newGameNode->heuristics += 2;
-					else ++(newGameNode->heuristics);
-					newGameNode->fromX = x;
-					newGameNode->fromY = y;
-					newGameNode->toX = newX;
-					newGameNode->toY = newY;
-					newGameNode->setName();
-					gNode->successors.push_back(newGameNode);
+					if(gNode->depth < searchDepth)
+					{
+						GameNode *newGameNode = new GameNode(*gNode);
+						newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[x - 1][y + 1] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[newX][newY] = A_KING;
+						if(killedKing) newGameNode->heuristics += 2;
+						else ++(newGameNode->heuristics);
+						newGameNode->fromX = x;
+						newGameNode->fromY = y;
+						newGameNode->toX = newX;
+						newGameNode->toY = newY;
+						newGameNode->setName();
+						gNode->successors.push_back(newGameNode);
+					}
 
 					retBool = true;
 				}
@@ -568,18 +610,21 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 				newY -= 1;
 				if(newX < BOARD_COL_NUM && newY >= 0 && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(*gNode);
-					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[x + 1][y - 1] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[newX][newY] = B_KING;
-					if(killedKing) newGameNode->heuristics -= 2;
-					else --(newGameNode->heuristics);
-					newGameNode->fromX = x;
-					newGameNode->fromY = y;
-					newGameNode->toX = newX;
-					newGameNode->toY = newY;
-					newGameNode->setName();
-					gNode->successors.push_back(newGameNode);
+					if(gNode->depth < searchDepth)
+					{
+						GameNode *newGameNode = new GameNode(*gNode);
+						newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[x + 1][y - 1] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[newX][newY] = B_KING;
+						if(killedKing) newGameNode->heuristics -= 2;
+						else --(newGameNode->heuristics);
+						newGameNode->fromX = x;
+						newGameNode->fromY = y;
+						newGameNode->toX = newX;
+						newGameNode->toY = newY;
+						newGameNode->setName();
+						gNode->successors.push_back(newGameNode);
+					}
 
 					retBool = true;
 				}
@@ -595,18 +640,21 @@ bool getBackwardJumps(GameNode *gNode, int x, int y)
 				newY -= 1;
 				if(newX >= 0 && newY >= 0 && gNode->gameBoard[newX][newY] == EMPTY_DARK_SQUARE)
 				{
-					GameNode *newGameNode = new GameNode(*gNode);
-					newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[x - 1][y - 1] = EMPTY_DARK_SQUARE;
-					newGameNode->gameBoard[newX][newY] = B_KING;
-					if(killedKing) newGameNode->heuristics -= 2;
-					else --(newGameNode->heuristics);
-					newGameNode->fromX = x;
-					newGameNode->fromY = y;
-					newGameNode->toX = newX;
-					newGameNode->toY = newY;
-					newGameNode->setName();
-					gNode->successors.push_back(newGameNode);
+					if(gNode->depth < searchDepth)
+					{
+						GameNode *newGameNode = new GameNode(*gNode);
+						newGameNode->gameBoard[x][y] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[x - 1][y - 1] = EMPTY_DARK_SQUARE;
+						newGameNode->gameBoard[newX][newY] = B_KING;
+						if(killedKing) newGameNode->heuristics -= 2;
+						else --(newGameNode->heuristics);
+						newGameNode->fromX = x;
+						newGameNode->fromY = y;
+						newGameNode->toX = newX;
+						newGameNode->toY = newY;
+						newGameNode->setName();
+						gNode->successors.push_back(newGameNode);
+					}
 
 					retBool = true;
 				}
@@ -690,6 +738,7 @@ int gameMaxValue(GameNode *node, int alpha, int beta)
 {
 	if(node->successors.empty())
 	{
+		node->printDepth();
 		cout << "Heuristic value of the current board = " << node->heuristics << "." << endl;
 		heuristicPrinted = true;
 		//node->printGameBoard();
@@ -698,20 +747,15 @@ int gameMaxValue(GameNode *node, int alpha, int beta)
 
 	node->alpha = alpha;
 	node->beta = beta;
-	if(node->depth != 0)
-	{
-		cout << node->name << endl;
-	}
-	node->printDepth();
 	for(int i = 0; i < node->successors.size(); ++i)
 	{
+		node->printDepth();
+		cout << node->successors[i]->name << endl;
 		node->alpha = max(node->alpha, gameMinValue(node->successors[i], node->alpha, node->beta));
-		if(node->printDepth(-1)) cout << node->successors[i]->name << endl;
-		if(i + 1 < node->successors.size()) node->printDepth();
 		if(node->alpha >= node->beta)
 		{
 			int nextIndex = i + 1;
-			if(node->successors.size() - nextIndex <= 0) node->printDepth();
+			node->printDepth();
 			cout << "Pruning Player A's moves: ";
 			if(node->successors.size() - nextIndex > 0)
 			{
@@ -731,7 +775,7 @@ int gameMaxValue(GameNode *node, int alpha, int beta)
 			}
 			else
 			{
-				cout << "<no children> ";
+				cout << "<no remaining children> ";
 			}
 			cout << "Alpha = " << node->alpha << "; Beta = " << node->beta << ".\n" << endl;
 			heuristicPrinted = false;
@@ -746,6 +790,7 @@ int gameMinValue(GameNode *node, int alpha, int beta)
 {
 	if(node->successors.empty())
 	{
+		node->printDepth();
 		cout << "Heuristic value of the current board = " << node->heuristics << "." << endl;
 		heuristicPrinted = true;
 		//node->printGameBoard();
@@ -754,20 +799,15 @@ int gameMinValue(GameNode *node, int alpha, int beta)
 
 	node->alpha = alpha;
 	node->beta = beta;
-	if(node->depth != 0)
-	{
-		cout << node->name << endl;
-	}
-	node->printDepth();
 	for(int i = 0; i < node->successors.size(); ++i)
 	{
+		node->printDepth();
+		cout << node->successors[i]->name << endl;
 		node->beta = min(node->beta, gameMaxValue(node->successors[i], node->alpha, node->beta));
-		if(node->printDepth(-1)) cout << node->successors[i]->name << endl;
-		if(i + 1 < node->successors.size()) node->printDepth();
 		if(node->beta <= node->alpha)
 		{
 			int nextIndex = i + 1;
-			if(node->successors.size() - nextIndex <= 0) node->printDepth();
+			node->printDepth();
 			cout << "Pruning Player B's moves: ";
 			if(node->successors.size() - nextIndex > 0)
 			{
@@ -826,6 +866,7 @@ int main(int argc, char **argv)
 
 	//Prepare the Minimax game tree first
 	bool playerFlag = true; //Player A / Max starts first
+	bool anyMovesLeft = false;
 	BOARDPOSITION playerPiece, kingPiece;
 
 	deque<GameNode*> nodeList; //Used to perform BFS on the minimax game tree
@@ -838,6 +879,9 @@ int main(int argc, char **argv)
 	while(currentDepth <= searchDepth && nodeList.size() != 0)
 	{
 		if(bDebug) cout << "============================" << endl;
+
+		//Reset anyMovesLeft
+		anyMovesLeft = false;
 
 		//Grab the first node in the queue
 		currentNode = nodeList.front();
@@ -884,26 +928,26 @@ int main(int argc, char **argv)
 		{
 			for(int j = 0; j < BOARD_COL_NUM; ++j)
 			{
-				getForwardJumps(currentNode, j, i);
-				getBackwardJumps(currentNode, j, i);
+				anyMovesLeft |= getForwardJumps(currentNode, j, i);
+				anyMovesLeft |= getBackwardJumps(currentNode, j, i);
 			}
 		}
 
 		//If there are no jumps then check for moves
-		if(currentNode->successors.size() == 0)
+		if(!anyMovesLeft)
 		{
 			//Loop through the board
 			for(int i = 0; i < BOARD_ROW_NUM; ++i)
 			{
 				for(int j = 0; j < BOARD_COL_NUM; ++j)
 				{
-					getForwardMoves(currentNode, j, i);
-					getBackwardMoves(currentNode, j, i);
+					anyMovesLeft |= getForwardMoves(currentNode, j, i);
+					anyMovesLeft |= getBackwardMoves(currentNode, j, i);
 				}
 			}
 
 			//If there are still no moves after doing everything then this is a victory for the other player
-			if(currentNode->successors.size() == 0)
+			if(!anyMovesLeft)
 			{
 				currentNode->printGameBoard();
 				if(currentNode->isMaxNode) currentNode->heuristics = INT_MIN;
@@ -911,7 +955,6 @@ int main(int argc, char **argv)
 				continue; //This node won't have any successors so just move on to the next
 			}
 		}
-
 		//Push back all the successors to the back of the queue
 		for(int k = 0; k < currentNode->successors.size(); ++k)
 		{
